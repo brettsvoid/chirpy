@@ -13,7 +13,8 @@ const (
 
 func main() {
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(STATIC_PATH)))
+	mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir(STATIC_PATH))))
+	mux.HandleFunc("/healthz", handlerReadiness)
 
 	s := &http.Server{
 		Addr:           ":" + PORT,
@@ -25,4 +26,10 @@ func main() {
 
 	log.Printf("Listening on port: %s\n", PORT)
 	log.Fatal(s.ListenAndServe())
+}
+
+func handlerReadiness(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(http.StatusText(http.StatusOK)))
 }
