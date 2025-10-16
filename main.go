@@ -22,15 +22,16 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle(
-		"/app/",
-		apiCfg.middlewareMetricsInc(
-			http.StripPrefix(
-				"/app",
-				http.FileServer(http.Dir(STATIC_PATH)),
-			)),
-	)
+	fsHandler := apiCfg.middlewareMetricsInc(
+		http.StripPrefix(
+			"/app",
+			http.FileServer(http.Dir(STATIC_PATH)),
+		))
+	mux.Handle("/app/", fsHandler)
+
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
+	mux.HandleFunc("POST /api/validate_chirp", handlerValidateChirp)
+
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 
@@ -42,6 +43,6 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	log.Printf("Listening on port: %s\n", PORT)
+	log.Printf("Serving files from %s on port: %s\n", STATIC_PATH, PORT)
 	log.Fatal(s.ListenAndServe())
 }
