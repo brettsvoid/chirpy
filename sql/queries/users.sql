@@ -33,3 +33,11 @@ WHERE
 	id = $1
 RETURNING
 	*;
+
+-- name: UpgradeToChirpyRed :exec
+UPDATE users
+SET
+	updated_at = now(),
+	is_chirpy_red = TRUE
+WHERE
+	id = $1;
